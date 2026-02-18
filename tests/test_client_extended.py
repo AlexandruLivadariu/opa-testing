@@ -7,7 +7,7 @@ import requests
 from urllib3.util.retry import Retry
 
 from src.opa_test_framework.client import OPAClient
-from src.opa_test_framework.exceptions import OPAConnectionError, OPAHTTPError, OPATimeoutError
+from src.opa_test_framework.exceptions import OPAConnectionError
 
 
 class TestRetryStrategy:

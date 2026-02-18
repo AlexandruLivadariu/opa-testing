@@ -2,10 +2,9 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from click.testing import CliRunner
 
-from src.opa_test_framework.cli import _run_dry_run, main
+from src.opa_test_framework.cli import main
 from src.opa_test_framework.exceptions import (
     OPAConnectionError,
     OPAHTTPError,
@@ -251,7 +250,6 @@ class TestDryRun:
                         return_value=MockClient.return_value
                     )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
-                    import requests
 
                     MockClient.return_value.health.side_effect = OPAConnectionError(
                         "http://localhost:8181", Exception("refused")

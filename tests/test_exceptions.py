@@ -1,7 +1,5 @@
 """Tests for custom exceptions."""
 
-import pytest
-
 from src.opa_test_framework.exceptions import (
     OPAConnectionError,
     OPAHTTPError,

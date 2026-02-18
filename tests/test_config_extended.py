@@ -1,10 +1,7 @@
 """Extended configuration tests covering per-category thresholds and thread safety."""
 
 import threading
-import tempfile
-import os
 
-import pytest
 import yaml
 
 from src.opa_test_framework.config import (

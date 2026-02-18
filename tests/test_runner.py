@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.opa_test_framework.config import PolicyTest, TestConfig
-from src.opa_test_framework.models import TestResult, TestStatus
 from src.opa_test_framework.runner import TestRunner
 
 
@@ -84,7 +83,6 @@ class TestTestRunner:
         config = self._make_config()
         runner = TestRunner(config)
 
-        mock_result = TestResult("health_check", TestStatus.PASS, 10.0, "ok")
         with patch("src.opa_test_framework.runner.OPAClient") as MockClient:
             mock_client = MagicMock()
             MockClient.return_value.__enter__ = MagicMock(return_value=mock_client)

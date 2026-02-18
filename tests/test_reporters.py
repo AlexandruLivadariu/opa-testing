@@ -3,9 +3,8 @@
 import json
 import xml.etree.ElementTree as ET
 
-import pytest
 
-from src.opa_test_framework.models import TestResult, TestResultsSummary, TestStatus
+from src.opa_test_framework.models import TestResult, TestStatus
 from src.opa_test_framework.reporting import ConsoleReporter, JSONReporter, JUnitReporter
 from src.opa_test_framework.results import aggregate_results
 

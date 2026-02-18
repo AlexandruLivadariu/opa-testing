@@ -13,6 +13,7 @@ from requests.exceptions import ConnectionError, Timeout
 from urllib3.util.retry import Retry
 
 from .exceptions import OPAConnectionError, OPAHTTPError, OPATimeoutError
+from .models import BundleStatus, HealthResponse, PolicyDecision
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +155,7 @@ class OPAClient:
         """Context manager exit."""
         self.close()
 
-    def health(self) -> "HealthResponse":
+    def health(self) -> HealthResponse:
         """
         Query OPA health endpoint.
 
@@ -166,8 +167,6 @@ class OPAClient:
             OPATimeoutError: On timeout
             OPAHTTPError: On HTTP errors
         """
-        from .models import HealthResponse
-
         response, duration_ms = self._request("GET", "/health")
 
         data = response.json() if response.content else {}
@@ -179,7 +178,7 @@ class OPAClient:
             raw_response=data,
         )
 
-    def get_bundle_status(self) -> Dict[str, "BundleStatus"]:
+    def get_bundle_status(self) -> Dict[str, BundleStatus]:
         """
         Query OPA bundle status endpoint.
 
@@ -191,8 +190,6 @@ class OPAClient:
             OPATimeoutError: On timeout
             OPAHTTPError: On HTTP errors
         """
-        from .models import BundleStatus
-
         response, duration_ms = self._request("GET", "/v1/status")
 
         data = response.json() if response.content else {}
@@ -210,7 +207,7 @@ class OPAClient:
 
         return bundles
 
-    def evaluate_policy(self, path: str, input_data: Dict[str, Any]) -> "PolicyDecision":
+    def evaluate_policy(self, path: str, input_data: Dict[str, Any]) -> PolicyDecision:
         """
         Evaluate a policy with given input data.
 
@@ -226,8 +223,6 @@ class OPAClient:
             OPATimeoutError: On timeout
             OPAHTTPError: On HTTP errors
         """
-        from .models import PolicyDecision
-
         # Construct the data API path
         api_path = f"/v1/data/{path.lstrip('/')}"
 

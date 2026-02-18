@@ -2,7 +2,6 @@
 Base classes for test categories and tests.
 """
 
-import time
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 

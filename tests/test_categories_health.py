@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock
 
-import pytest
 
 from src.opa_test_framework.categories.health import (
     HealthCheckTest,

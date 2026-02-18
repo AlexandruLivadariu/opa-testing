@@ -3,9 +3,7 @@ Test runner for executing OPA tests.
 """
 
 import logging
-from typing import List, Optional
-
-logger = logging.getLogger(__name__)
+from typing import List
 
 from .categories.auth import AuthTests
 from .categories.base import TestCategory
@@ -14,8 +12,10 @@ from .categories.health import HealthTests
 from .categories.policy import PolicyTests
 from .client import OPAClient
 from .config import TestConfig
-from .models import TestResult, TestStatus
+from .models import TestResult, TestResultsSummary, TestStatus
 from .results import aggregate_results
+
+logger = logging.getLogger(__name__)
 
 
 class TestRunner:
@@ -45,19 +45,17 @@ class TestRunner:
         all_categories = self._get_all_categories()
         return [c for c in all_categories if c.is_smoke_test()]
 
-    def run_smoke_tests(self) -> "TestResultsSummary":
+    def run_smoke_tests(self) -> TestResultsSummary:
         """
         Run smoke tests only (fast, critical tests).
 
         Returns:
             TestResultsSummary with results
         """
-        from .results import TestResultsSummary
-
         categories = self._get_smoke_categories()
         return self._run_categories(categories, fail_fast=True)
 
-    def run_full_tests(self) -> "TestResultsSummary":
+    def run_full_tests(self) -> TestResultsSummary:
         """
         Run all tests.
 
@@ -67,7 +65,7 @@ class TestRunner:
         categories = self._get_all_categories()
         return self._run_categories(categories, fail_fast=False)
 
-    def run_category(self, category_name: str) -> "TestResultsSummary":
+    def run_category(self, category_name: str) -> TestResultsSummary:
         """
         Run tests from a specific category.
 
@@ -94,7 +92,7 @@ class TestRunner:
 
     def _run_categories(
         self, categories: List[TestCategory], fail_fast: bool = False
-    ) -> "TestResultsSummary":
+    ) -> TestResultsSummary:
         """
         Run tests from specified categories.
 

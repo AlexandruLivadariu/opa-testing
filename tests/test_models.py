@@ -1,7 +1,5 @@
 """Tests for data models."""
 
-import pytest
-
 from src.opa_test_framework.models import (
     BundleStatus,
     HealthResponse,

@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 import requests
 
 from src.opa_test_framework.categories.auth import (
@@ -11,7 +10,7 @@ from src.opa_test_framework.categories.auth import (
     AuthTokenValidTest,
 )
 from src.opa_test_framework.config import TestConfig
-from src.opa_test_framework.exceptions import OPAConnectionError, OPAHTTPError, OPATimeoutError
+from src.opa_test_framework.exceptions import OPAHTTPError
 from src.opa_test_framework.models import TestStatus
 
 

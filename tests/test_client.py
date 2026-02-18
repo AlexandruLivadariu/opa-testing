@@ -1,8 +1,5 @@
 """Tests for OPA HTTP client."""
 
-import json
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from threading import Thread
 from unittest.mock import MagicMock, patch
 
 import pytest

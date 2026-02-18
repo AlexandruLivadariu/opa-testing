@@ -34,7 +34,7 @@ class PolicyDecisionTest(Test):
                 return self._create_result(
                     status=TestStatus.FAIL,
                     duration_ms=duration_ms,
-                    message=f"Policy decision mismatch",
+                    message="Policy decision mismatch",
                     details={
                         "expected": self.policy_test.expected_output,
                         "actual": decision.result,
@@ -63,7 +63,7 @@ class PolicyDecisionTest(Test):
             return self._create_result(
                 status=TestStatus.PASS,
                 duration_ms=duration_ms,
-                message=f"Policy decision matches expected output",
+                message="Policy decision matches expected output",
                 details={
                     "result": decision.result,
                     "policy_path": self.policy_test.policy_path,
