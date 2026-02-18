@@ -1,0 +1,15 @@
+# Core dependencies
+pytest==7.4.4
+requests==2.31.0
+hypothesis==6.92.2
+pyyaml==6.0.1
+click==8.1.7
+
+# Development dependencies
+pytest-cov==4.1.0
+black==23.12.1
+flake8==6.1.0
+mypy==1.8.0
+
+# Optional dependencies for enhanced reporting
+pytest-html==3.2.0

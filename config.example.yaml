@@ -1,0 +1,78 @@
+# Example configuration for OPA Test Framework
+
+# OPA instance configuration
+opa_url: "http://localhost:8181"
+
+# Optional: Multiple OPA instances for multi-instance testing
+# opa_urls:
+#   - "http://opa-1:8181"
+#   - "http://opa-2:8181"
+#   - "http://opa-3:8181"
+
+# Optional: Bearer token for authentication
+# auth_token: "your-bearer-token-here"
+
+# Request timeout in seconds
+timeout_seconds: 10
+
+# Optional: Bundle service configuration
+# bundle_service_url: "http://bundle-server:8080"
+# expected_bundle_revision: "v1.2.3"
+
+# Performance thresholds (global defaults)
+performance_thresholds:
+  max_response_time_ms: 500
+  warning_threshold_ms: 100
+  # Optional per-category overrides — health checks are much faster than
+  # complex policy evaluations, so use tighter limits per category.
+  # category_thresholds:
+  #   health:
+  #     max_response_time_ms: 50
+  #     warning_threshold_ms: 20
+  #   bundle:
+  #     max_response_time_ms: 200
+  #     warning_threshold_ms: 80
+  #   policy:
+  #     max_response_time_ms: 1000
+  #     warning_threshold_ms: 300
+
+# Report format: console, junit, or json
+report_format: "console"
+
+# Rego test configuration
+rego_test_paths:
+  - "policies"
+rego_coverage_enabled: false
+
+# Policy test cases
+test_policies:
+  - name: "test_allow_admin"
+    policy_path: "example/allow"
+    input:
+      user: "alice"
+      role: "admin"
+      action: "read"
+    expected_output:
+      allow: true
+
+  - name: "test_deny_guest"
+    policy_path: "example/allow"
+    input:
+      user: "bob"
+      role: "guest"
+      action: "write"
+    expected_output:
+      allow: false
+
+  - name: "test_structured_response"
+    policy_path: "example/permissions"
+    input:
+      user: "charlie"
+      resource: "document-123"
+    expected_output:
+      allowed_actions:
+        - "read"
+        - "comment"
+      denied_actions:
+        - "write"
+        - "delete"

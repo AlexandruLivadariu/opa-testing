@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # OPA instance for testing.
+  # Pin the image tag via OPA_VERSION env var or .env file, e.g.:
+  #   OPA_VERSION=0.70.0 docker-compose up
+  opa:
+    image: openpolicyagent/opa:${OPA_VERSION:-latest}
+    container_name: opa-test
+    ports:
+      - "8181:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--addr=:8181"
+      - "--log-level=debug"
+      - "/policies"
+    volumes:
+      - ./examples/policies:/policies:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8181/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # Optional: OPA with authentication enabled
+  opa-auth:
+    image: openpolicyagent/opa:${OPA_VERSION:-latest}
+    container_name: opa-auth-test
+    ports:
+      - "8182:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--addr=:8181"
+      - "--authentication=token"
+      - "--authorization=basic"
+      - "/policies"
+    volumes:
+      - ./examples/policies:/policies:ro
+    environment:
+      - OPA_AUTH_TOKEN=test-token-12345
+    profiles:
+      - auth
+
+  # Optional: Bundle server for testing bundle loading
+  bundle-server:
+    image: nginx:alpine
+    container_name: opa-bundle-server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./examples/bundles:/usr/share/nginx/html:ro
+    profiles:
+      - bundles
+
+  # Test runner container
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      args:
+        # Pass the same OPA_VERSION through so the CLI inside the image matches
+        # the OPA server version being tested.
+        OPA_VERSION: ${OPA_VERSION:-0.70.0}
+    container_name: opa-test-runner
+    depends_on:
+      opa:
+        condition: service_healthy
+    environment:
+      - OPA_URL=http://opa:8181
+    volumes:
+      - ./config.example.yaml:/app/config.yaml:ro
+      - ./test-results:/app/test-results
+    command: ["--mode", "full", "--config", "/app/config.yaml"]
+    profiles:
+      - test

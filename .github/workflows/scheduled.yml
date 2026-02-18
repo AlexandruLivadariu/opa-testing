@@ -1,0 +1,52 @@
+name: Scheduled OPA Tests
+
+on:
+  schedule:
+    # Run every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  scheduled-tests:
+    name: Hourly OPA Health Check
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        environment: [staging, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run smoke tests
+        env:
+          OPA_URL: ${{ matrix.environment == 'staging' && secrets.STAGING_OPA_URL || secrets.PRODUCTION_OPA_URL }}
+          OPA_AUTH_TOKEN: ${{ matrix.environment == 'staging' && secrets.STAGING_OPA_TOKEN || secrets.PRODUCTION_OPA_TOKEN }}
+        run: |
+          opa-test --ci --mode smoke --report-format json --output ${{ matrix.environment }}-health-check.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.environment }}-health-check
+          path: ${{ matrix.environment }}-health-check.json
+          retention-days: 7
+
+      - name: Check for failures
+        if: failure()
+        run: |
+          echo "::error::OPA health check failed for ${{ matrix.environment }}"
+          # Add alerting logic here

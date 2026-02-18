@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opa-test-framework"
+version = "0.1.0"
+description = "Automated testing framework for Open Policy Agent (OPA) deployments"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Organization"}
+]
+dependencies = [
+    "pytest>=7.4.0",
+    "requests>=2.31.0",
+    "hypothesis>=6.82.0",
+    "pyyaml>=6.0",
+    "click>=8.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest-cov>=4.1.0",
+    "black>=23.7.0",
+    "flake8>=6.1.0",
+    "mypy>=1.5.0",
+    "pytest-html>=3.2.0",
+]
+
+[project.scripts]
+opa-test = "opa_test_framework.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "smoke: marks tests as smoke tests (fast, critical)",
+    "integration: marks tests as integration tests (require OPA instance)",
+    "property: marks tests as property-based tests",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
