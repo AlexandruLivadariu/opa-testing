@@ -1,5 +1,7 @@
 package example
 
+import future.keywords.in
+
 # --- Basic allow/deny tests ---
 
 test_allow_admin {

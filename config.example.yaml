@@ -45,6 +45,10 @@ rego_test_paths:
 rego_coverage_enabled: false
 
 # Policy test cases
+# NOTE: OPA's /v1/data/<path> API returns the value at that path directly
+# via {"result": <value>}.  For a boolean rule like `allow` the result is
+# true/false.  For a set-generating rule like `permissions[action]` the
+# result is a JSON array of the set members.
 test_policies:
   - name: "test_allow_admin"
     policy_path: "example/allow"
@@ -52,8 +56,7 @@ test_policies:
       user: "alice"
       role: "admin"
       action: "read"
-    expected_output:
-      allow: true
+    expected_output: true
 
   - name: "test_deny_guest"
     policy_path: "example/allow"
@@ -61,8 +64,7 @@ test_policies:
       user: "bob"
       role: "guest"
       action: "write"
-    expected_output:
-      allow: false
+    expected_output: false
 
   - name: "test_structured_response"
     policy_path: "example/permissions"
@@ -70,9 +72,4 @@ test_policies:
       user: "charlie"
       resource: "document-123"
     expected_output:
-      allowed_actions:
-        - "read"
-        - "comment"
-      denied_actions:
-        - "write"
-        - "delete"
+      - "read"

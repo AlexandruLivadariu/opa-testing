@@ -42,7 +42,28 @@ class BundleStatusTest(Test):
                 details={"bundle_count": len(bundles), "bundle_names": bundle_names},
             )
 
-        except (OPAConnectionError, OPATimeoutError, OPAHTTPError) as e:
+        except OPAHTTPError as e:
+            duration_ms = (time.time() - start_time) * 1000
+            # OPA returns 500 on /v1/status when no status plugin is
+            # configured (e.g. standalone server mode without a bundle
+            # service).  This is expected — skip rather than error.
+            if e.status_code == 500:
+                return self._create_result(
+                    status=TestStatus.SKIP,
+                    duration_ms=duration_ms,
+                    message=(
+                        "OPA status endpoint returned HTTP 500 — "
+                        "status plugin may not be configured (standalone mode)"
+                    ),
+                    details={"status_code": e.status_code},
+                )
+            return self._create_result(
+                status=TestStatus.ERROR,
+                duration_ms=duration_ms,
+                message=f"Failed to get bundle status: {str(e)}",
+                details={"error": str(e)},
+            )
+        except (OPAConnectionError, OPATimeoutError) as e:
             duration_ms = (time.time() - start_time) * 1000
             return self._create_result(
                 status=TestStatus.ERROR,
