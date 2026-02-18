@@ -23,10 +23,11 @@ class TestTestRunner:
         config = self._make_config()
         runner = TestRunner(config)
         categories = runner._get_all_categories()
-        # Should have health and bundle categories
-        assert len(categories) == 2
+        # Should have health, auth, and bundle categories
+        assert len(categories) == 3
         names = [c.name for c in categories]
         assert "health" in names
+        assert "auth" in names
         assert "bundle" in names
 
     def test_get_all_categories_with_policies(self):
@@ -42,8 +43,11 @@ class TestTestRunner:
         )
         runner = TestRunner(config)
         categories = runner._get_all_categories()
-        assert len(categories) == 3
+        assert len(categories) == 4
         names = [c.name for c in categories]
+        assert "health" in names
+        assert "auth" in names
+        assert "bundle" in names
         assert "policy" in names
 
     def test_get_smoke_categories(self):
