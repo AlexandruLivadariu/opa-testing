@@ -46,20 +46,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
 
-    services:
-      opa:
-        image: openpolicyagent/opa:latest
-        ports:
-          - 8181:8181
-        options: >-
-          --health-cmd "wget --spider -q http://localhost:8181/health"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 3
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Start OPA server
+        run: |
+          docker run -d \
+            --name opa-server \
+            -p 8181:8181 \
+            openpolicyagent/opa:${{ env.OPA_VERSION }} \
+            run --server --addr=:8181 --log-level=info
+          echo "Waiting for OPA to be ready..."
+          timeout 30 bash -c 'until curl -sf http://localhost:8181/health; do sleep 2; done'
+          echo "OPA is ready."
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -78,10 +78,6 @@ jobs:
           wget -q "https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static" -O /usr/local/bin/opa
           chmod +x /usr/local/bin/opa
           opa version
-
-      - name: Wait for OPA to be ready
-        run: |
-          timeout 30 bash -c 'until curl -sf http://localhost:8181/health; do sleep 2; done'
 
       - name: Load policies into OPA
         run: |
@@ -119,6 +115,10 @@ jobs:
           OPA_URL: http://localhost:8181
         run: |
           opa-test --mode full --config config.example.yaml --report-format json --output test-results/results.json || true
+
+      - name: Stop OPA server
+        if: always()
+        run: docker rm -f opa-server || true
 
       - name: Upload test results
         if: always()
