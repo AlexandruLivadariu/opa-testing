@@ -27,7 +27,7 @@ class AuthRequiredTest(Test):
     If OPA is not configured with authentication this test is skipped.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="auth_required",
             description="Verify OPA rejects unauthenticated requests with HTTP 401",
@@ -106,7 +106,7 @@ class AuthTokenValidTest(Test):
     is accepted, ruling out misconfiguration on the framework side.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="auth_token_valid",
             description="Verify the configured auth token is accepted by OPA",
@@ -166,7 +166,7 @@ class AuthTokenValidTest(Test):
 class AuthTests(TestCategory):
     """Category for authentication enforcement tests."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("auth")
 
     def get_tests(self) -> List[Test]:

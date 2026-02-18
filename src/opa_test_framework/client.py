@@ -313,7 +313,7 @@ class OPAClient:
             OPATimeoutError: On timeout
             OPAHTTPError: On HTTP errors
         """
-        payload = {"query": query_string}
+        payload: Dict[str, Any] = {"query": query_string}
         if input_data:
             payload["input"] = input_data
 

@@ -15,7 +15,7 @@ from .base import Test, TestCategory
 class BundleStatusTest(Test):
     """Test that at least one bundle is loaded."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="bundle_status",
             description="Verify at least one bundle is loaded in OPA",
@@ -63,7 +63,7 @@ class BundleStatusTest(Test):
 class BundleRevisionTest(Test):
     """Test that bundle revision matches expected version."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="bundle_revision",
             description="Verify bundle revision matches expected version",
@@ -136,7 +136,7 @@ class BundleEvaluabilityTest(Test):
     non-error response, proving the runtime policy graph is intact.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="bundle_evaluability",
             description="Verify that bundle policies are evaluable at runtime",
@@ -192,7 +192,7 @@ class BundleEvaluabilityTest(Test):
 class BundleTests(TestCategory):
     """Category for bundle status tests."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("bundle")
 
     def get_tests(self) -> List[Test]:

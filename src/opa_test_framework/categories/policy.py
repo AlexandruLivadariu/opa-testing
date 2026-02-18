@@ -96,7 +96,7 @@ class PolicyTests(TestCategory):
         self.config = config
 
     def get_tests(self) -> List[Test]:
-        tests = []
+        tests: List[Test] = []
         for i, policy_test in enumerate(self.config.test_policies):
             # Use the smoke flag from config; default first test to smoke if none are marked
             is_smoke = policy_test.smoke if policy_test.smoke else (i == 0)

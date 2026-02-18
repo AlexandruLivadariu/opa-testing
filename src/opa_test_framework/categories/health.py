@@ -15,7 +15,7 @@ from .base import Test, TestCategory
 class HealthCheckTest(Test):
     """Test that OPA health endpoint returns 200 OK."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="health_check",
             description="Verify OPA health endpoint returns 200 OK",
@@ -71,7 +71,7 @@ class HealthCheckTest(Test):
 class HealthResponseValidationTest(Test):
     """Test that health response contains valid metrics."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="health_response_validation",
             description="Verify health response contains valid metrics",
@@ -114,7 +114,7 @@ class HealthResponseValidationTest(Test):
 class HealthTests(TestCategory):
     """Category for health check tests."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("health")
 
     def get_tests(self) -> List[Test]:

@@ -12,7 +12,7 @@ import click
 from .client import OPAClient
 from .config import ConfigurationError, TestConfig, load_config, validate_config
 from .exceptions import OPAConnectionError, OPAHTTPError, OPATimeoutError
-from .reporting import ConsoleReporter, JSONReporter, JUnitReporter
+from .reporting import ConsoleReporter, JSONReporter, JUnitReporter, ReportGenerator
 from .runner import TestRunner
 
 logger = logging.getLogger(__name__)
@@ -201,6 +201,7 @@ def main(
             summary = runner.run_full_tests()
 
         # Generate report
+        reporter: ReportGenerator
         if test_config.report_format == "junit":
             reporter = JUnitReporter()
         elif test_config.report_format == "json":
