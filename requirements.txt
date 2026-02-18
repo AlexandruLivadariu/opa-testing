@@ -6,7 +6,7 @@ pyyaml==6.0.1
 click==8.1.7
 
 # Development dependencies
-pytest-cov==4.1.0
+pytest-cov==7.0.0
 black==23.12.1
 flake8==6.1.0
 mypy==1.8.0
