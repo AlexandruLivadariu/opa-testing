@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class OPAClient:
     """
     HTTP client for interacting with OPA instances.
-    
+
     Provides methods for querying health, bundle status, evaluating policies,
     and managing data via the OPA REST API.
     """

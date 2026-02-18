@@ -41,9 +41,7 @@ class TestPerCategoryThresholds:
         thresholds = PerformanceThresholds(
             max_response_time_ms=500,
             warning_threshold_ms=100,
-            category_thresholds={
-                "policy": {"max_response_time_ms": 1000}
-            },
+            category_thresholds={"policy": {"max_response_time_ms": 1000}},
         )
         result = thresholds.for_category("policy")
         assert result.max_response_time_ms == 1000

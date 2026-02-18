@@ -29,9 +29,7 @@ def _run_dry_run(test_config: TestConfig) -> None:
     click.echo(f"  Timeout      : {test_config.timeout_seconds}s")
     click.echo(f"  Auth token   : {'set' if test_config.auth_token else 'not set'}")
     click.echo(f"  Report format: {test_config.report_format}")
-    click.echo(
-        f"  Policy tests : {len(test_config.test_policies)} configured"
-    )
+    click.echo(f"  Policy tests : {len(test_config.test_policies)} configured")
 
     click.echo("\nProbing OPA health endpoint...")
     try:

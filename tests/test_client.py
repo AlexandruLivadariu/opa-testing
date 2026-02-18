@@ -136,9 +136,7 @@ class TestOPAClientEvaluatePolicy:
             "decision_id": "abc-123",
         }
         with patch.object(client.session, "request", return_value=mock_response):
-            decision = client.evaluate_policy(
-                "example/allow", {"role": "admin", "action": "read"}
-            )
+            decision = client.evaluate_policy("example/allow", {"role": "admin", "action": "read"})
             assert decision.result == {"allow": True}
             assert decision.decision_id == "abc-123"
         client.close()

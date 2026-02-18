@@ -10,11 +10,11 @@ jobs:
   scheduled-tests:
     name: Hourly OPA Health Check
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         environment: [staging, production]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,7 +30,23 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
+      - name: Skip if OPA not configured for this environment
+        id: check_env
+        run: |
+          if [ "${{ matrix.environment }}" = "staging" ]; then
+            URL="${{ secrets.STAGING_OPA_URL }}"
+          else
+            URL="${{ secrets.PRODUCTION_OPA_URL }}"
+          fi
+          if [ -z "$URL" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "::warning::OPA URL for ${{ matrix.environment }} is not set — skipping"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run smoke tests
+        if: steps.check_env.outputs.skip == 'false'
         env:
           OPA_URL: ${{ matrix.environment == 'staging' && secrets.STAGING_OPA_URL || secrets.PRODUCTION_OPA_URL }}
           OPA_AUTH_TOKEN: ${{ matrix.environment == 'staging' && secrets.STAGING_OPA_TOKEN || secrets.PRODUCTION_OPA_TOKEN }}
@@ -38,7 +54,7 @@ jobs:
           opa-test --ci --mode smoke --report-format json --output ${{ matrix.environment }}-health-check.json
 
       - name: Upload results
-        if: always()
+        if: always() && steps.check_env.outputs.skip == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment }}-health-check

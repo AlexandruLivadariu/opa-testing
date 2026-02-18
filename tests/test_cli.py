@@ -201,7 +201,9 @@ class TestDryRun:
             with patch("src.opa_test_framework.cli.validate_config", return_value=[]):
                 with patch("src.opa_test_framework.cli.OPAClient") as MockClient:
                     mock_health = MagicMock(status="ok")
-                    MockClient.return_value.__enter__ = MagicMock(return_value=MockClient.return_value)
+                    MockClient.return_value.__enter__ = MagicMock(
+                        return_value=MockClient.return_value
+                    )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
                     MockClient.return_value.health.return_value = mock_health
                     result = runner.invoke(main, ["--dry-run"])
@@ -221,14 +223,16 @@ class TestDryRun:
             mock_load.return_value = mock_config
             with patch("src.opa_test_framework.cli.validate_config", return_value=[]):
                 with patch("src.opa_test_framework.cli.OPAClient") as MockClient:
-                    MockClient.return_value.__enter__ = MagicMock(return_value=MockClient.return_value)
+                    MockClient.return_value.__enter__ = MagicMock(
+                        return_value=MockClient.return_value
+                    )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
                     MockClient.return_value.health.return_value = MagicMock(status="ok")
                     result = runner.invoke(main, ["--dry-run"])
                     assert "http://opa-test:8181" in result.output
                     assert "30s" in result.output
                     assert "set" in result.output  # auth token masked as 'set'
-                    assert "2" in result.output    # 2 policy tests
+                    assert "2" in result.output  # 2 policy tests
 
     def test_dry_run_connection_error_exits_1(self):
         runner = CliRunner()
@@ -243,9 +247,12 @@ class TestDryRun:
             mock_load.return_value = mock_config
             with patch("src.opa_test_framework.cli.validate_config", return_value=[]):
                 with patch("src.opa_test_framework.cli.OPAClient") as MockClient:
-                    MockClient.return_value.__enter__ = MagicMock(return_value=MockClient.return_value)
+                    MockClient.return_value.__enter__ = MagicMock(
+                        return_value=MockClient.return_value
+                    )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
                     import requests
+
                     MockClient.return_value.health.side_effect = OPAConnectionError(
                         "http://localhost:8181", Exception("refused")
                     )
@@ -266,7 +273,9 @@ class TestDryRun:
             mock_load.return_value = mock_config
             with patch("src.opa_test_framework.cli.validate_config", return_value=[]):
                 with patch("src.opa_test_framework.cli.OPAClient") as MockClient:
-                    MockClient.return_value.__enter__ = MagicMock(return_value=MockClient.return_value)
+                    MockClient.return_value.__enter__ = MagicMock(
+                        return_value=MockClient.return_value
+                    )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
                     MockClient.return_value.health.side_effect = OPATimeoutError(
                         "http://localhost:8181", 10
@@ -287,7 +296,9 @@ class TestDryRun:
             mock_load.return_value = mock_config
             with patch("src.opa_test_framework.cli.validate_config", return_value=[]):
                 with patch("src.opa_test_framework.cli.OPAClient") as MockClient:
-                    MockClient.return_value.__enter__ = MagicMock(return_value=MockClient.return_value)
+                    MockClient.return_value.__enter__ = MagicMock(
+                        return_value=MockClient.return_value
+                    )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
                     MockClient.return_value.health.side_effect = OPAHTTPError(
                         500, "http://localhost:8181", "internal error"
@@ -309,7 +320,9 @@ class TestDryRun:
             mock_load.return_value = mock_config
             with patch("src.opa_test_framework.cli.validate_config", return_value=[]):
                 with patch("src.opa_test_framework.cli.OPAClient") as MockClient:
-                    MockClient.return_value.__enter__ = MagicMock(return_value=MockClient.return_value)
+                    MockClient.return_value.__enter__ = MagicMock(
+                        return_value=MockClient.return_value
+                    )
                     MockClient.return_value.__exit__ = MagicMock(return_value=False)
                     MockClient.return_value.health.return_value = MagicMock(status="ok")
                     with patch("src.opa_test_framework.cli.TestRunner") as MockRunner:

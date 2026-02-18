@@ -138,9 +138,7 @@ class TestLoadConfig:
 
     def test_load_from_yaml_file(self, tmp_path):
         config_file = tmp_path / "config.yaml"
-        config_file.write_text(
-            yaml.dump({"opa_url": "http://custom:9999", "timeout_seconds": 30})
-        )
+        config_file.write_text(yaml.dump({"opa_url": "http://custom:9999", "timeout_seconds": 30}))
         config = load_config(str(config_file))
         assert config.opa_url == "http://custom:9999"
         assert config.timeout_seconds == 30

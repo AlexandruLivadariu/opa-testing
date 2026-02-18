@@ -1,31 +1,54 @@
 version: 2
+
 updates:
-  # Python pip dependencies
+  # Python dependencies — weekly, grouped into one PR
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Bucharest"
+    # Group ALL pip updates into a single PR instead of one per package
+    groups:
+      python-deps:
+        patterns:
+          - "*"
+    # Limit open PRs so the queue never floods
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "python"
+    commit-message:
+      prefix: "chore(deps)"
 
-  # GitHub Actions
+  # GitHub Actions — weekly, grouped
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Bucharest"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 2
     labels:
       - "dependencies"
-      - "ci"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
 
-  # Docker
+  # Docker base images — monthly (less critical to update frequently)
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 2
     labels:
       - "dependencies"
       - "docker"
+    commit-message:
+      prefix: "chore(deps)"

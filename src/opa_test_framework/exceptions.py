@@ -35,9 +35,7 @@ class OPAHTTPError(OPATestError):
         self.url = url
         # Truncate and sanitize response body to avoid leaking sensitive data
         self.response_body = response_body[:200] if response_body else ""
-        super().__init__(
-            f"OPA returned HTTP {status_code} for {url}"
-        )
+        super().__init__(f"OPA returned HTTP {status_code} for {url}")
 
 
 class OPAPolicyError(OPATestError):

@@ -26,9 +26,7 @@ class PolicyDecisionTest(Test):
     def execute(self, client: OPAClient, config: TestConfig) -> TestResult:
         start_time = time.time()
         try:
-            decision = client.evaluate_policy(
-                self.policy_test.policy_path, self.policy_test.input
-            )
+            decision = client.evaluate_policy(self.policy_test.policy_path, self.policy_test.input)
             duration_ms = (time.time() - start_time) * 1000
 
             # Compare result with expected output
@@ -47,7 +45,9 @@ class PolicyDecisionTest(Test):
 
             # If expected_allow is specified, verify it
             if self.policy_test.expected_allow is not None:
-                actual_allow = decision.result.get("allow") if isinstance(decision.result, dict) else None
+                actual_allow = (
+                    decision.result.get("allow") if isinstance(decision.result, dict) else None
+                )
                 if actual_allow != self.policy_test.expected_allow:
                     return self._create_result(
                         status=TestStatus.FAIL,
@@ -105,9 +105,7 @@ class PolicyTests(TestCategory):
 
     def is_smoke_test(self) -> bool:
         # Category is a smoke test if any policy test is marked as smoke
-        return any(
-            pt.smoke or i == 0 for i, pt in enumerate(self.config.test_policies)
-        )
+        return any(pt.smoke or i == 0 for i, pt in enumerate(self.config.test_policies))
 
     def get_priority(self) -> int:
         return 2  # After health and bundle

@@ -50,9 +50,7 @@ class ConsoleReporter(ReportGenerator):
             for result in failed_results:
                 status_color = self.RED
                 status_symbol = "✗"
-                lines.append(
-                    f"\n  {status_color}{status_symbol} {result.test_name}{self.RESET}"
-                )
+                lines.append(f"\n  {status_color}{status_symbol} {result.test_name}{self.RESET}")
                 lines.append(f"    {result.message}")
                 if result.details:
                     lines.append(f"    Details: {result.details}")
@@ -71,9 +69,7 @@ class ConsoleReporter(ReportGenerator):
                 else:  # ERROR
                     symbol = f"{self.RED}✗{self.RESET}"
 
-                lines.append(
-                    f"  {symbol} {result.test_name} ({result.duration_ms:.2f}ms)"
-                )
+                lines.append(f"  {symbol} {result.test_name} ({result.duration_ms:.2f}ms)")
 
         lines.append("")  # Empty line at end
         return "\n".join(lines)

@@ -65,12 +65,8 @@ class PerformanceThresholds:
         if not override:
             return self
         return PerformanceThresholds(
-            max_response_time_ms=override.get(
-                "max_response_time_ms", self.max_response_time_ms
-            ),
-            warning_threshold_ms=override.get(
-                "warning_threshold_ms", self.warning_threshold_ms
-            ),
+            max_response_time_ms=override.get("max_response_time_ms", self.max_response_time_ms),
+            warning_threshold_ms=override.get("warning_threshold_ms", self.warning_threshold_ms),
             # Do not propagate nested category_thresholds into the override
             category_thresholds={},
         )
@@ -104,9 +100,7 @@ class TestConfig:
 
     # Test configuration
     test_policies: List[PolicyTest] = field(default_factory=list)
-    performance_thresholds: PerformanceThresholds = field(
-        default_factory=PerformanceThresholds
-    )
+    performance_thresholds: PerformanceThresholds = field(default_factory=PerformanceThresholds)
 
     # Reporting configuration
     report_format: str = "console"  # console, junit, json
@@ -193,17 +187,13 @@ def load_config(config_file: Optional[str] = None) -> TestConfig:
                     file_config = yaml.safe_load(f) or {}
                     config_data.update(file_config)
             except yaml.YAMLError as e:
-                raise ConfigurationError(
-                    f"Invalid YAML in config file '{config_file}': {e}"
-                )
+                raise ConfigurationError(f"Invalid YAML in config file '{config_file}': {e}")
 
         # Override with environment variables
         env_overrides = _load_from_env()
         config_data.update(env_overrides)
         if env_overrides:
-            logger.debug(
-                "Applied environment variable overrides: %s", list(env_overrides.keys())
-            )
+            logger.debug("Applied environment variable overrides: %s", list(env_overrides.keys()))
 
         # Create TestConfig with merged data
         try:
@@ -248,9 +238,7 @@ def _load_from_env() -> Dict[str, Any]:
         env_config["bundle_service_url"] = os.environ["OPA_BUNDLE_SERVICE_URL"]
 
     if "OPA_EXPECTED_BUNDLE_REVISION" in os.environ:
-        env_config["expected_bundle_revision"] = os.environ[
-            "OPA_EXPECTED_BUNDLE_REVISION"
-        ]
+        env_config["expected_bundle_revision"] = os.environ["OPA_EXPECTED_BUNDLE_REVISION"]
 
     if "OPA_REPORT_FORMAT" in os.environ:
         env_config["report_format"] = os.environ["OPA_REPORT_FORMAT"]
@@ -319,16 +307,12 @@ def validate_config(config: TestConfig) -> List[str]:
     if config.timeout_seconds <= 0:
         errors.append(f"timeout_seconds must be positive: {config.timeout_seconds}")
     elif config.timeout_seconds > 300:
-        errors.append(
-            f"timeout_seconds is too large (max 300): {config.timeout_seconds}"
-        )
+        errors.append(f"timeout_seconds is too large (max 300): {config.timeout_seconds}")
 
     # Validate report format
     valid_formats = ["console", "junit", "json"]
     if config.report_format not in valid_formats:
-        errors.append(
-            f"report_format must be one of {valid_formats}: {config.report_format}"
-        )
+        errors.append(f"report_format must be one of {valid_formats}: {config.report_format}")
 
     # Validate performance thresholds
     if config.performance_thresholds.max_response_time_ms <= 0:
@@ -354,13 +338,9 @@ def validate_config(config: TestConfig) -> List[str]:
         cat_max = cat_thresholds.get("max_response_time_ms")
         cat_warn = cat_thresholds.get("warning_threshold_ms")
         if cat_max is not None and cat_max <= 0:
-            errors.append(
-                f"category_thresholds[{cat_name}].max_response_time_ms must be positive"
-            )
+            errors.append(f"category_thresholds[{cat_name}].max_response_time_ms must be positive")
         if cat_warn is not None and cat_warn <= 0:
-            errors.append(
-                f"category_thresholds[{cat_name}].warning_threshold_ms must be positive"
-            )
+            errors.append(f"category_thresholds[{cat_name}].warning_threshold_ms must be positive")
         if cat_max is not None and cat_warn is not None and cat_warn >= cat_max:
             errors.append(
                 f"category_thresholds[{cat_name}].warning_threshold_ms "
