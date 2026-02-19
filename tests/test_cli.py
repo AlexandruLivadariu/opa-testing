@@ -1,5 +1,7 @@
 """Tests for CLI interface."""
 
+import json
+
 from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
@@ -112,6 +114,13 @@ class TestCLI:
                     )
                     assert result.exit_code == 0
                     assert output_file.exists()
+                    # Validate the file contains valid JSON with expected structure
+                    content = json.loads(output_file.read_text())
+                    assert "summary" in content
+                    assert content["summary"]["total_tests"] == 1
+                    assert content["summary"]["passed"] == 1
+                    assert "results" in content
+                    assert len(content["results"]) == 1
 
     def test_smoke_mode(self):
         runner = CliRunner()
@@ -163,6 +172,10 @@ class TestCLI:
                     )
                     assert result.exit_code == 0
                     assert output_file.exists()
+                    # Validate the file contains well-formed XML
+                    content = output_file.read_text()
+                    assert content.startswith("<?xml")
+                    assert "testsuite" in content
 
     def test_report_format_override(self):
         """--report-format flag overrides config file format."""

@@ -30,8 +30,7 @@ jobs:
           pip install -r requirements.txt
           pip install -e .
 
-      - name: Skip if OPA not configured for this environment
-        id: check_env
+      - name: Validate OPA configuration for environment
         run: |
           if [ "${{ matrix.environment }}" = "staging" ]; then
             URL="${{ secrets.STAGING_OPA_URL }}"
@@ -39,14 +38,11 @@ jobs:
             URL="${{ secrets.PRODUCTION_OPA_URL }}"
           fi
           if [ -z "$URL" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "::warning::OPA URL for ${{ matrix.environment }} is not set — skipping"
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "::error::OPA URL for ${{ matrix.environment }} is not set"
+            exit 1
           fi
 
       - name: Run smoke tests
-        if: steps.check_env.outputs.skip == 'false'
         env:
           OPA_URL: ${{ matrix.environment == 'staging' && secrets.STAGING_OPA_URL || secrets.PRODUCTION_OPA_URL }}
           OPA_AUTH_TOKEN: ${{ matrix.environment == 'staging' && secrets.STAGING_OPA_TOKEN || secrets.PRODUCTION_OPA_TOKEN }}
@@ -54,7 +50,7 @@ jobs:
           opa-test --ci --mode smoke --report-format json --output ${{ matrix.environment }}-health-check.json
 
       - name: Upload results
-        if: always() && steps.check_env.outputs.skip == 'false'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.environment }}-health-check

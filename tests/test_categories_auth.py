@@ -57,6 +57,33 @@ class TestAuthRequiredTest:
         assert result.status == TestStatus.PASS
         assert "401" in result.message
 
+    def test_request_omits_auth_header(self):
+        """The unauthenticated probe must NOT send an Authorization header."""
+        config = _make_config(auth_token="secret")
+        client = _make_client(auth_token="secret")
+        test = AuthRequiredTest()
+
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+
+        with patch("src.opa_test_framework.categories.auth.requests.Session") as MockSession:
+            mock_session = MockSession.return_value
+            mock_session.__enter__ = MagicMock(return_value=mock_session)
+            mock_session.__exit__ = MagicMock(return_value=False)
+            mock_session.get.return_value = mock_response
+            # Verify the session doesn't have auth headers set on it
+            mock_session.headers = {}
+            test.execute(client, config)
+
+            # Verify .get() was called without an Authorization header in kwargs
+            mock_session.get.assert_called_once()
+            call_args = mock_session.get.call_args
+            # Check no 'headers' kwarg with Authorization was passed
+            headers_kwarg = call_args.kwargs.get("headers", {}) if call_args.kwargs else {}
+            assert "Authorization" not in headers_kwarg
+            # Also verify the session itself has no auth headers
+            assert "Authorization" not in mock_session.headers
+
     def test_fails_when_opa_returns_200_without_auth(self):
         """OPA should reject unauthenticated requests; 200 means auth is not enforced."""
         config = _make_config(auth_token="secret")

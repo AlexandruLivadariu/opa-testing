@@ -233,11 +233,21 @@ curl http://bundle-server:8080/bundles/bundle.tar.gz
 ```
 
 4. **Skip bundle tests if not using bundles:**
-```yaml
-# config.yaml - remove bundle tests
-# Or run specific category:
-opa-test --mode category --category health
+```bash
+opa-test --mode category --category health --config config.yaml
 ```
+
+### Issue: Bundle status returns ERROR (500 retries)
+
+**Symptoms:**
+```
+✗ bundle_status
+  ERROR: too many 500 error responses
+```
+
+This happens when OPA's `/v1/status` endpoint returns HTTP 500 repeatedly — typically because OPA is still starting up, or bundles are not configured. The framework retries 3 times with exponential backoff. After exhausting retries, the test is **skipped** (not failed), so it won't break your pipeline.
+
+If you see this as an ERROR instead of SKIP, ensure you're on the latest framework version.
 
 ### Issue: Policy decision mismatch
 
@@ -592,13 +602,18 @@ curl -v -X POST http://localhost:8181/v1/data/example/allow \
   -d '{"input": {"role": "admin"}}'
 ```
 
-4. **Check documentation:**
-- [README.md](README.md)
-- [DEPLOYMENT.md](DEPLOYMENT.md)
-- [TESTING.md](TESTING.md)
+4. **Use `--dry-run`** to validate config without running tests:
+```bash
+opa-test --dry-run --config config.yaml
+```
 
-5. **Open an issue:**
+5. **Check documentation:**
+- [Getting Started](getting-started.md)
+- [Configuration](configuration.md)
+- [CI/CD Integration](ci-cd.md)
+
+6. **Open an issue:**
 - Include error messages
-- Include configuration
+- Include configuration (redact tokens)
 - Include steps to reproduce
 - Include environment details (OS, Python version, Docker version)

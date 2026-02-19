@@ -2,6 +2,7 @@
 OPA HTTP Client for interacting with Open Policy Agent instances.
 """
 
+import json as _json
 import logging
 import time
 from typing import Any, Dict, Optional, Tuple
@@ -70,6 +71,25 @@ class OPAClient:
         if self.auth_token:
             self.session.headers.update({"Authorization": f"Bearer {self.auth_token}"})
 
+    @staticmethod
+    def _safe_json(response: requests.Response, fallback: Any = None) -> Any:
+        """Parse JSON from a response, returning *fallback* on decode errors.
+
+        OPA normally returns well-formed JSON, but a misbehaving proxy or
+        truncated response could produce garbage.  Rather than crashing with
+        an unhandled ``json.JSONDecodeError`` we log a warning and return
+        the caller-supplied *fallback* value (default ``None``).
+        """
+        try:
+            return response.json()
+        except (ValueError, _json.JSONDecodeError):
+            logger.warning(
+                "Failed to decode JSON from %s response (%d bytes): returning fallback",
+                response.url,
+                len(response.content) if response.content else 0,
+            )
+            return fallback
+
     def _request(
         self,
         method: str,
@@ -116,17 +136,14 @@ class OPAClient:
             return response, duration_ms
 
         except Timeout as e:
-            duration_ms = (time.time() - start_time) * 1000
             logger.warning("Request to %s timed out after %ds", url, self.timeout)
             raise OPATimeoutError(url, self.timeout) from e
 
         except ConnectionError as e:
-            duration_ms = (time.time() - start_time) * 1000
             logger.error("Connection failed to %s: %s", url, e)
             raise OPAConnectionError(url, e) from e
 
         except requests.RequestException as e:
-            duration_ms = (time.time() - start_time) * 1000
             logger.error("Request failed for %s: %s", url, e)
             raise OPAConnectionError(url, e) from e
 
@@ -156,7 +173,7 @@ class OPAClient:
         """
         response, duration_ms = self._request("GET", "/health")
 
-        data = response.json() if response.content else {}
+        data = self._safe_json(response, fallback={}) if response.content else {}
 
         return HealthResponse(
             status=data.get("status", "ok"),
@@ -179,7 +196,7 @@ class OPAClient:
         """
         response, duration_ms = self._request("GET", "/v1/status")
 
-        data = response.json() if response.content else {}
+        data = self._safe_json(response, fallback={}) if response.content else {}
         bundles_data = data.get("bundles", {})
 
         bundles = {}
@@ -216,7 +233,7 @@ class OPAClient:
         # Send policy evaluation request
         response, duration_ms = self._request("POST", api_path, json={"input": input_data})
 
-        data = response.json()
+        data = self._safe_json(response, fallback={})
 
         return PolicyDecision(
             result=data.get("result"),
@@ -242,7 +259,7 @@ class OPAClient:
         api_path = f"/v1/data/{path.lstrip('/')}"
         response, duration_ms = self._request("GET", api_path)
 
-        data = response.json()
+        data = self._safe_json(response, fallback={})
         return data.get("result")
 
     def put_data(self, path: str, data: Any) -> bool:
@@ -306,5 +323,5 @@ class OPAClient:
 
         response, duration_ms = self._request("POST", "/v1/query", json=payload)
 
-        data = response.json()
+        data = self._safe_json(response, fallback={})
         return data.get("result")

@@ -42,8 +42,17 @@ class TestOPAClientInit:
 
     def test_close(self):
         client = OPAClient(base_url="http://localhost:8181")
-        client.close()
-        # After close, session should still exist but be closed
+        with patch.object(client.session, "close") as mock_close:
+            client.close()
+            mock_close.assert_called_once()
+
+    def test_context_manager_calls_close(self):
+        """Exiting the context manager must close the session."""
+        client = OPAClient(base_url="http://localhost:8181")
+        with patch.object(client.session, "close") as mock_session_close:
+            with client:
+                pass  # __exit__ fires after this block
+            mock_session_close.assert_called_once()
 
 
 class TestOPAClientRequest:
@@ -222,4 +231,46 @@ class TestOPAClientDataAPI:
         with patch.object(client.session, "request", return_value=mock_response):
             result = client.query("data.example.allow == true")
             assert result == [{"x": 1}]
+        client.close()
+
+
+class TestSafeJson:
+    """Tests for OPAClient._safe_json helper."""
+
+    def test_valid_json(self):
+        response = MagicMock()
+        response.json.return_value = {"key": "value"}
+        assert OPAClient._safe_json(response) == {"key": "value"}
+
+    def test_invalid_json_returns_fallback(self):
+        import json
+
+        response = MagicMock()
+        response.json.side_effect = json.JSONDecodeError("err", "", 0)
+        response.url = "http://localhost:8181/test"
+        response.content = b"not-json"
+        assert OPAClient._safe_json(response, fallback={}) == {}
+
+    def test_invalid_json_default_fallback_is_none(self):
+        import json
+
+        response = MagicMock()
+        response.json.side_effect = json.JSONDecodeError("err", "", 0)
+        response.url = "http://localhost:8181/test"
+        response.content = b""
+        assert OPAClient._safe_json(response) is None
+
+    def test_evaluate_policy_with_malformed_json(self):
+        """evaluate_policy should not crash on malformed JSON."""
+        import json as json_mod
+
+        client = OPAClient(base_url="http://localhost:8181", max_retries=0)
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.side_effect = json_mod.JSONDecodeError("err", "", 0)
+        mock_response.url = "http://localhost:8181/v1/data/test"
+        mock_response.content = b"broken"
+        with patch.object(client.session, "request", return_value=mock_response):
+            decision = client.evaluate_policy("test", {"role": "admin"})
+            assert decision.result is None
         client.close()

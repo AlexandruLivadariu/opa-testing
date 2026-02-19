@@ -5,7 +5,7 @@ services:
   # Pin the image tag via OPA_VERSION env var or .env file, e.g.:
   #   OPA_VERSION=0.70.0 docker-compose up
   opa:
-    image: openpolicyagent/opa:${OPA_VERSION:-latest}
+    image: openpolicyagent/opa:${OPA_VERSION:-0.70.0}
     container_name: opa-test
     ports:
       - "8181:8181"
@@ -26,7 +26,7 @@ services:
 
   # Optional: OPA with authentication enabled
   opa-auth:
-    image: openpolicyagent/opa:${OPA_VERSION:-latest}
+    image: openpolicyagent/opa:${OPA_VERSION:-0.70.0}
     container_name: opa-auth-test
     ports:
       - "8182:8181"
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./examples/policies:/policies:ro
     environment:
-      - OPA_AUTH_TOKEN=test-token-12345
+      - OPA_AUTH_TOKEN=${OPA_AUTH_TOKEN:-change-me}
     profiles:
       - auth
 

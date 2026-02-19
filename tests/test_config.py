@@ -65,18 +65,6 @@ class TestTestConfig:
         assert config.auth_token is None
         assert config.report_format == "console"
 
-    def test_opa_urls_populated_from_opa_url(self):
-        config = TestConfig(opa_url="http://custom:9999")
-        assert config.opa_urls == ["http://custom:9999"]
-
-    def test_opa_urls_preserved_if_set(self):
-        config = TestConfig(
-            opa_url="http://main:8181",
-            opa_urls=["http://opa1:8181", "http://opa2:8181"],
-        )
-        assert len(config.opa_urls) == 2
-        assert "http://opa1:8181" in config.opa_urls
-
     def test_dict_to_performance_thresholds(self):
         config = TestConfig(
             performance_thresholds={"max_response_time_ms": 999, "warning_threshold_ms": 50}
@@ -186,6 +174,40 @@ class TestLoadConfig:
         config = load_config()
         assert config.performance_thresholds.max_response_time_ms == 1000
         assert config.performance_thresholds.warning_threshold_ms == 200
+
+    def test_missing_config_file_raises(self):
+        with pytest.raises(FileNotFoundError, match="not found"):
+            load_config("/nonexistent/path/config.yaml")
+
+    def test_permission_denied_raises(self, tmp_path, monkeypatch):
+        """Simulate a PermissionError when opening the config file."""
+        import builtins
+
+        config_file = tmp_path / "secret.yaml"
+        config_file.write_text("opa_url: http://localhost:8181")
+
+        real_open = builtins.open
+
+        def _mock_open(path, *args, **kwargs):
+            if str(path) == str(config_file):
+                raise PermissionError(f"Permission denied: '{config_file}'")
+            return real_open(path, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "open", _mock_open)
+        with pytest.raises(ConfigurationError, match="Permission denied"):
+            load_config(str(config_file))
+
+    def test_env_timeout_zero_raises(self, monkeypatch):
+        """OPA_TIMEOUT=0 should fail fast at env-loading time."""
+        monkeypatch.setenv("OPA_TIMEOUT", "0")
+        with pytest.raises(ConfigurationError, match="positive integer"):
+            load_config()
+
+    def test_env_timeout_negative_raises(self, monkeypatch):
+        """OPA_TIMEOUT=-5 should fail fast at env-loading time."""
+        monkeypatch.setenv("OPA_TIMEOUT", "-5")
+        with pytest.raises(ConfigurationError, match="positive integer"):
+            load_config()
 
 
 class TestValidateConfig:

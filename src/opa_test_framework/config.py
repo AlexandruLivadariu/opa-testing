@@ -90,7 +90,6 @@ class TestConfig:
 
     # OPA instance configuration
     opa_url: str = "http://localhost:8181"
-    opa_urls: List[str] = field(default_factory=list)
     auth_token: Optional[str] = None
     timeout_seconds: int = 10
 
@@ -111,10 +110,6 @@ class TestConfig:
 
     def __post_init__(self) -> None:
         """Post-initialization validation and setup."""
-        # If opa_urls is empty, use opa_url as the single instance
-        if not self.opa_urls:
-            self.opa_urls = [self.opa_url]
-
         # Ensure performance_thresholds is an instance
         if isinstance(self.performance_thresholds, dict):
             thresholds_dict = dict(self.performance_thresholds)
@@ -188,6 +183,12 @@ def load_config(config_file: Optional[str] = None) -> TestConfig:
                     config_data.update(file_config)
             except yaml.YAMLError as e:
                 raise ConfigurationError(f"Invalid YAML in config file '{config_file}': {e}")
+            except FileNotFoundError:
+                raise FileNotFoundError(f"Configuration file not found: {config_file}")
+            except PermissionError:
+                raise ConfigurationError(f"Permission denied reading config file '{config_file}'")
+            except OSError as e:
+                raise ConfigurationError(f"Unable to read config file '{config_file}': {e}")
 
         # Override with environment variables
         env_overrides = _load_from_env()
@@ -232,6 +233,10 @@ def _load_from_env() -> Dict[str, Any]:
 
     timeout = _parse_env_int("OPA_TIMEOUT")
     if timeout is not None:
+        if timeout <= 0:
+            raise ConfigurationError(
+                f"Environment variable OPA_TIMEOUT must be a positive integer, got: {timeout}"
+            )
         env_config["timeout_seconds"] = timeout
 
     if "OPA_BUNDLE_SERVICE_URL" in os.environ:
@@ -294,10 +299,6 @@ def validate_config(config: TestConfig) -> List[str]:
 
     # Validate OPA URL
     errors.extend(_validate_url(config.opa_url, "opa_url"))
-
-    # Validate all OPA URLs
-    for i, url in enumerate(config.opa_urls):
-        errors.extend(_validate_url(url, f"opa_urls[{i}]"))
 
     # Validate bundle service URL if provided
     if config.bundle_service_url:
