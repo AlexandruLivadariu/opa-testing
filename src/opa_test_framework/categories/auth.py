@@ -49,9 +49,9 @@ class AuthRequiredTest(Test):
         try:
             # Build a *bare* session with no auth header so we can probe
             # whether OPA actually enforces authentication.
-            session = requests.Session()
             url = f"{client.base_url}/health"
-            response = session.get(url, timeout=client.timeout)
+            with requests.Session() as session:
+                response = session.get(url, timeout=client.timeout)
             duration_ms = (time.time() - start_time) * 1000
 
             if response.status_code == 401:

@@ -3,7 +3,7 @@
 # OPA instance configuration
 opa_url: "http://localhost:8181"
 
-# Optional: Multiple OPA instances for multi-instance testing
+# Optional: Multiple OPA instances (not yet implemented — reserved for future use)
 # opa_urls:
 #   - "http://opa-1:8181"
 #   - "http://opa-2:8181"

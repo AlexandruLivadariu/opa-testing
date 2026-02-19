@@ -44,6 +44,9 @@ addopts = [
     "--strict-markers",
     "--tb=short",
 ]
+filterwarnings = [
+    "ignore::pytest.PytestCollectionWarning",
+]
 markers = [
     "smoke: marks tests as smoke tests (fast, critical)",
     "integration: marks tests as integration tests (require OPA instance)",

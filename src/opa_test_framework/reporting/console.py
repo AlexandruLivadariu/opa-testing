@@ -2,20 +2,52 @@
 Console reporter for test results.
 """
 
+import os
+import sys
+
 from ..models import TestResultsSummary, TestStatus
 from .base import ReportGenerator
+
+
+def _supports_color() -> bool:
+    """Return True if the output stream likely supports ANSI colours."""
+    # Explicit opt-in / opt-out via environment variable
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("FORCE_COLOR"):
+        return True
+    # Non-TTY output (e.g. piped to a file) should not use colour
+    if not hasattr(sys.stdout, "isatty") or not sys.stdout.isatty():
+        return False
+    # Windows: enable ANSI processing via the virtual terminal flag.
+    # This works on Windows 10 1607+ and Windows Terminal.
+    if sys.platform == "win32":
+        try:
+            import ctypes
+
+            kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+            # STD_OUTPUT_HANDLE = -11
+            handle = kernel32.GetStdHandle(-11)
+            # ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+            mode = ctypes.c_ulong()
+            kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+            kernel32.SetConsoleMode(handle, mode.value | 0x0004)
+        except Exception:
+            return False
+    return True
 
 
 class ConsoleReporter(ReportGenerator):
     """Generate colored console output for test results."""
 
-    # ANSI color codes
-    GREEN = "\033[92m"
-    RED = "\033[91m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
+    def __init__(self) -> None:
+        color = _supports_color()
+        self.GREEN = "\033[92m" if color else ""
+        self.RED = "\033[91m" if color else ""
+        self.YELLOW = "\033[93m" if color else ""
+        self.BLUE = "\033[94m" if color else ""
+        self.RESET = "\033[0m" if color else ""
+        self.BOLD = "\033[1m" if color else ""
 
     def generate(self, summary: TestResultsSummary) -> str:
         """Generate console report."""

@@ -14,8 +14,12 @@ RUN apt-get update && \
 # Override at build time:  docker build --build-arg OPA_VERSION=0.71.0 .
 # Or via docker-compose:   OPA_VERSION=0.71.0 docker-compose build
 ARG OPA_VERSION=0.70.0
-RUN wget -q "https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static" -O /usr/local/bin/opa && \
+RUN wget -q "https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static" -O /tmp/opa_linux_amd64_static && \
+    wget -q "https://openpolicyagent.org/downloads/v${OPA_VERSION}/opa_linux_amd64_static.sha256" -O /tmp/opa_linux_amd64_static.sha256 && \
+    cd /tmp && sha256sum -c opa_linux_amd64_static.sha256 && \
+    mv /tmp/opa_linux_amd64_static /usr/local/bin/opa && \
     chmod +x /usr/local/bin/opa && \
+    rm -f /tmp/opa_linux_amd64_static.sha256 && \
     opa version
 
 # Copy requirements first for better caching

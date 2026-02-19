@@ -97,15 +97,25 @@ class PolicyTests(TestCategory):
 
     def get_tests(self) -> List[Test]:
         tests: List[Test] = []
+        any_explicit_smoke = any(pt.smoke for pt in self.config.test_policies)
         for i, policy_test in enumerate(self.config.test_policies):
-            # Use the smoke flag from config; default first test to smoke if none are marked
-            is_smoke = policy_test.smoke if policy_test.smoke else (i == 0)
+            # Honour explicit smoke flag.  When no test is explicitly marked,
+            # default the first test to smoke so the category participates in
+            # smoke runs.
+            if any_explicit_smoke:
+                is_smoke = policy_test.smoke
+            else:
+                is_smoke = i == 0
             tests.append(PolicyDecisionTest(policy_test, is_smoke=is_smoke))
         return tests
 
     def is_smoke_test(self) -> bool:
-        # Category is a smoke test if any policy test is marked as smoke
-        return any(pt.smoke or i == 0 for i, pt in enumerate(self.config.test_policies))
+        # Category is a smoke test if any policy test will run as smoke
+        any_explicit = any(pt.smoke for pt in self.config.test_policies)
+        if any_explicit:
+            return True
+        # Default: first test is treated as smoke when none are explicitly marked
+        return len(self.config.test_policies) > 0
 
     def get_priority(self) -> int:
         return 2  # After health and bundle

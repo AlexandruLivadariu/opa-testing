@@ -83,12 +83,12 @@ class HealthResponseValidationTest(Test):
             health_response = client.health()
             duration_ms = (time.time() - start_time) * 1000
 
-            # Check that response has required fields
-            if not hasattr(health_response, "status"):
+            # Validate that the status field has a non-empty value
+            if not health_response.status:
                 return self._create_result(
                     status=TestStatus.FAIL,
                     duration_ms=duration_ms,
-                    message="Health response missing 'status' field",
+                    message="Health response has empty or missing 'status' value",
                 )
 
             return self._create_result(

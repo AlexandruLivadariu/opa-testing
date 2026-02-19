@@ -48,7 +48,10 @@ class TestAuthRequiredTest:
         mock_response.status_code = 401
 
         with patch("src.opa_test_framework.categories.auth.requests.Session") as MockSession:
-            MockSession.return_value.get.return_value = mock_response
+            mock_session = MockSession.return_value
+            mock_session.__enter__ = MagicMock(return_value=mock_session)
+            mock_session.__exit__ = MagicMock(return_value=False)
+            mock_session.get.return_value = mock_response
             result = test.execute(client, config)
 
         assert result.status == TestStatus.PASS
@@ -64,7 +67,10 @@ class TestAuthRequiredTest:
         mock_response.status_code = 200
 
         with patch("src.opa_test_framework.categories.auth.requests.Session") as MockSession:
-            MockSession.return_value.get.return_value = mock_response
+            mock_session = MockSession.return_value
+            mock_session.__enter__ = MagicMock(return_value=mock_session)
+            mock_session.__exit__ = MagicMock(return_value=False)
+            mock_session.get.return_value = mock_response
             result = test.execute(client, config)
 
         assert result.status == TestStatus.FAIL
@@ -76,7 +82,10 @@ class TestAuthRequiredTest:
         test = AuthRequiredTest()
 
         with patch("src.opa_test_framework.categories.auth.requests.Session") as MockSession:
-            MockSession.return_value.get.side_effect = requests.Timeout()
+            mock_session = MockSession.return_value
+            mock_session.__enter__ = MagicMock(return_value=mock_session)
+            mock_session.__exit__ = MagicMock(return_value=False)
+            mock_session.get.side_effect = requests.Timeout()
             result = test.execute(client, config)
 
         assert result.status == TestStatus.ERROR
@@ -88,7 +97,10 @@ class TestAuthRequiredTest:
         test = AuthRequiredTest()
 
         with patch("src.opa_test_framework.categories.auth.requests.Session") as MockSession:
-            MockSession.return_value.get.side_effect = requests.ConnectionError("refused")
+            mock_session = MockSession.return_value
+            mock_session.__enter__ = MagicMock(return_value=mock_session)
+            mock_session.__exit__ = MagicMock(return_value=False)
+            mock_session.get.side_effect = requests.ConnectionError("refused")
             result = test.execute(client, config)
 
         assert result.status == TestStatus.ERROR

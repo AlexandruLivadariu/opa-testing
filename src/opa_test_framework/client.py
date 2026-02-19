@@ -49,35 +49,22 @@ class OPAClient:
         # Create session with connection pooling
         self.session = requests.Session()
 
-        # Configure retry strategy for transient server errors (5xx).
-        # 429 (Too Many Requests) is intentionally excluded here: we use a
-        # separate, more conservative backoff for rate-limit responses so that
-        # we do not hammer OPA when it is already overloaded.
-        server_error_retry = Retry(
+        # Configure retry strategy for transient errors.  Both 5xx server
+        # errors and 429 (Too Many Requests) are retried through a single
+        # urllib3 Retry object.  The ``respect_retry_after_header`` flag
+        # ensures we honour any Retry-After header sent with a 429 response
+        # rather than hammering OPA when it is already overloaded.
+        retry = Retry(
             total=max_retries,
             backoff_factor=0.5,
-            status_forcelist=[500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "POST", "PUT", "DELETE"],
-        )
-
-        # Rate-limit retry: fewer attempts with longer backoff so we respect
-        # the OPA rate limit rather than thundering past it.
-        rate_limit_retry = Retry(
-            total=max(1, max_retries - 1),
-            backoff_factor=2.0,
-            status_forcelist=[429],
+            status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "POST", "PUT", "DELETE"],
             respect_retry_after_header=True,
         )
 
-        # Mount the server-error adapter; the rate-limit adapter is applied
-        # on top via a custom session hook so both strategies are active.
-        adapter = HTTPAdapter(max_retries=server_error_retry)
+        adapter = HTTPAdapter(max_retries=retry)
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
-
-        # Store rate-limit retry config for use in _request
-        self._rate_limit_retry = rate_limit_retry
 
         # Set authentication header if token provided
         if self.auth_token:

@@ -11,18 +11,18 @@ from src.opa_test_framework.exceptions import OPAConnectionError
 
 
 class TestRetryStrategy:
-    """Tests for the split 429 / 5xx retry configuration (issue #2)."""
+    """Tests for the unified retry configuration."""
 
-    def test_server_error_retry_excludes_429(self):
-        """The server-error adapter must NOT retry on 429."""
+    def test_retry_includes_429(self):
+        """Retry adapter must handle 429 rate-limit responses."""
         client = OPAClient(base_url="http://localhost:8181", max_retries=3)
         adapter = client.session.get_adapter("http://localhost:8181")
         retry: Retry = adapter.max_retries
-        assert 429 not in retry.status_forcelist
+        assert 429 in retry.status_forcelist
         client.close()
 
-    def test_server_error_retry_includes_5xx(self):
-        """The server-error adapter must retry on common 5xx codes."""
+    def test_retry_includes_5xx(self):
+        """Retry adapter must handle common 5xx server errors."""
         client = OPAClient(base_url="http://localhost:8181", max_retries=3)
         adapter = client.session.get_adapter("http://localhost:8181")
         retry: Retry = adapter.max_retries
@@ -32,34 +32,18 @@ class TestRetryStrategy:
         assert 504 in retry.status_forcelist
         client.close()
 
-    def test_rate_limit_retry_config_exists(self):
-        """Client must carry a separate rate-limit retry configuration."""
-        client = OPAClient(base_url="http://localhost:8181", max_retries=3)
-        assert hasattr(client, "_rate_limit_retry")
-        rl: Retry = client._rate_limit_retry
-        assert 429 in rl.status_forcelist
-        client.close()
-
-    def test_rate_limit_retry_backoff_greater_than_server_error(self):
-        """Rate-limit backoff must be more conservative than server-error backoff."""
+    def test_retry_respects_retry_after_header(self):
+        """429 handling must respect the Retry-After header."""
         client = OPAClient(base_url="http://localhost:8181", max_retries=3)
         adapter = client.session.get_adapter("http://localhost:8181")
-        server_retry: Retry = adapter.max_retries
-        rl_retry: Retry = client._rate_limit_retry
-        assert rl_retry.backoff_factor > server_retry.backoff_factor
-        client.close()
-
-    def test_rate_limit_fewer_retries_than_server_error(self):
-        client = OPAClient(base_url="http://localhost:8181", max_retries=4)
-        adapter = client.session.get_adapter("http://localhost:8181")
-        server_retry: Retry = adapter.max_retries
-        rl_retry: Retry = client._rate_limit_retry
-        assert rl_retry.total <= server_retry.total
+        retry: Retry = adapter.max_retries
+        assert retry.respect_retry_after_header is True
         client.close()
 
     def test_zero_max_retries_does_not_crash(self):
         client = OPAClient(base_url="http://localhost:8181", max_retries=0)
-        assert hasattr(client, "_rate_limit_retry")
+        adapter = client.session.get_adapter("http://localhost:8181")
+        assert adapter is not None
         client.close()
 
 

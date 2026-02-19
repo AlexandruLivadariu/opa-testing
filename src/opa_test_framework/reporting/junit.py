@@ -2,8 +2,8 @@
 JUnit XML reporter for test results.
 """
 
+import sys
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
 
 from ..models import TestResultsSummary, TestStatus
 from .base import ReportGenerator
@@ -43,7 +43,14 @@ class JUnitReporter(ReportGenerator):
                 skipped = ET.SubElement(testcase, "skipped")
                 skipped.set("message", result.message)
 
-        # Convert to pretty-printed XML string
-        xml_str = ET.tostring(testsuite, encoding="unicode")
-        dom = minidom.parseString(xml_str)
-        return dom.toprettyxml(indent="  ")
+        # Pretty-print the XML tree.  Python 3.9+ has ET.indent(); on
+        # older versions fall back to minidom reparsing.
+        if sys.version_info >= (3, 9):
+            ET.indent(testsuite, space="  ")
+            return ET.tostring(testsuite, encoding="unicode", xml_declaration=True)
+        else:
+            from xml.dom import minidom
+
+            xml_str = ET.tostring(testsuite, encoding="unicode")
+            dom = minidom.parseString(xml_str)
+            return dom.toprettyxml(indent="  ")

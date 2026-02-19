@@ -3,13 +3,36 @@ Bundle status tests for OPA instances.
 """
 
 import time
-from typing import List
+from typing import List, Union
 
 from ..client import OPAClient
 from ..config import TestConfig
 from ..exceptions import OPAConnectionError, OPAHTTPError, OPATimeoutError
 from ..models import TestResult, TestStatus
 from .base import Test, TestCategory
+
+
+def _is_retry_exhausted_500(exc: Union[OPAConnectionError, OPATimeoutError]) -> bool:
+    """Return True if *exc* was caused by urllib3 exhausting retries on 500s.
+
+    When the retry adapter hits the retry limit for repeated 500 responses,
+    urllib3 raises ``MaxRetryError`` wrapping a ``ResponseError`` whose message
+    mentions "too many 500 error responses".  The client converts this to an
+    ``OPAConnectionError`` with the urllib3 exception as ``original_error``.
+
+    We inspect the exception chain structurally first (via ``original_error``)
+    and fall back to a string check so we remain resilient to changes in
+    urllib3's internal naming.
+    """
+    original = getattr(exc, "original_error", None)
+    if original is not None:
+        # Walk the cause chain (MaxRetryError → ResponseError)
+        cause = original.__cause__ if original.__cause__ else original
+        cause_name = type(cause).__name__
+        if cause_name in ("ResponseError", "MaxRetryError"):
+            return "500" in str(cause)
+    # Fallback: inspect the full stringified exception
+    return "too many 500 error responses" in str(exc)
 
 
 class BundleStatusTest(Test):
@@ -70,8 +93,7 @@ class BundleStatusTest(Test):
             # which the client wraps as OPAConnectionError.  The status
             # endpoint returning 500 is expected in standalone mode (no
             # status plugin), so treat this the same as a single 500.
-            error_str = str(e)
-            if "500" in error_str or "too many 500 error responses" in error_str:
+            if _is_retry_exhausted_500(e):
                 return self._create_result(
                     status=TestStatus.SKIP,
                     duration_ms=duration_ms,
@@ -79,13 +101,13 @@ class BundleStatusTest(Test):
                         "OPA status endpoint returned HTTP 500 — "
                         "status plugin may not be configured (standalone mode)"
                     ),
-                    details={"error": error_str},
+                    details={"error": str(e)},
                 )
             return self._create_result(
                 status=TestStatus.ERROR,
                 duration_ms=duration_ms,
-                message=f"Failed to get bundle status: {error_str}",
-                details={"error": error_str},
+                message=f"Failed to get bundle status: {str(e)}",
+                details={"error": str(e)},
             )
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000
