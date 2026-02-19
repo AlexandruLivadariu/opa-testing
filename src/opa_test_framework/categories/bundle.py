@@ -65,11 +65,27 @@ class BundleStatusTest(Test):
             )
         except (OPAConnectionError, OPATimeoutError) as e:
             duration_ms = (time.time() - start_time) * 1000
+            # When the retry strategy exhausts all attempts against a 500
+            # response, urllib3 raises a MaxRetryError / ResponseError
+            # which the client wraps as OPAConnectionError.  The status
+            # endpoint returning 500 is expected in standalone mode (no
+            # status plugin), so treat this the same as a single 500.
+            error_str = str(e)
+            if "500" in error_str or "too many 500 error responses" in error_str:
+                return self._create_result(
+                    status=TestStatus.SKIP,
+                    duration_ms=duration_ms,
+                    message=(
+                        "OPA status endpoint returned HTTP 500 — "
+                        "status plugin may not be configured (standalone mode)"
+                    ),
+                    details={"error": error_str},
+                )
             return self._create_result(
                 status=TestStatus.ERROR,
                 duration_ms=duration_ms,
-                message=f"Failed to get bundle status: {str(e)}",
-                details={"error": str(e)},
+                message=f"Failed to get bundle status: {error_str}",
+                details={"error": error_str},
             )
         except Exception as e:
             duration_ms = (time.time() - start_time) * 1000

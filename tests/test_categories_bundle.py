@@ -72,6 +72,22 @@ class TestBundleStatusTest:
         result = BundleStatusTest().execute(client, config)
         assert result.status == TestStatus.ERROR
 
+    def test_skips_on_max_retry_500_connection_error(self):
+        """Max retries exhausted from repeated 500s should SKIP, not ERROR."""
+        config = _make_config()
+        client = _make_client()
+        client.get_bundle_status.side_effect = OPAConnectionError(
+            "http://localhost:8181/v1/status",
+            Exception(
+                "HTTPConnectionPool(host='localhost', port=8181): "
+                "Max retries exceeded with url: /v1/status "
+                "(Caused by ResponseError('too many 500 error responses'))"
+            ),
+        )
+        result = BundleStatusTest().execute(client, config)
+        assert result.status == TestStatus.SKIP
+        assert "standalone mode" in result.message
+
     def test_passes_with_multiple_bundles(self):
         config = _make_config()
         client = _make_client()
