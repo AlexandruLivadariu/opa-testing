@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=82.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -13,22 +13,22 @@ authors = [
     {name = "Your Organization"}
 ]
 dependencies = [
-    "pytest>=7.4.0",
-    "requests>=2.31.0",
-    "hypothesis>=6.82.0",
-    "pyyaml>=6.0",
-    "click>=8.1.0",
+    "pytest>=8.4.2",
+    "requests>=2.32.5",
+    "hypothesis>=6.141.1",
+    "pyyaml>=6.0.3",
+    "click>=8.1.8",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest-cov>=4.1.0",
-    "black>=23.7.0",
-    "flake8>=6.1.0",
-    "mypy>=1.5.0",
-    "pytest-html>=3.2.0",
-    "types-PyYAML>=6.0.12",
-    "types-requests>=2.31.0",
+    "pytest-cov>=7.1.0",
+    "black>=25.11.0",
+    "flake8>=7.3.0",
+    "mypy>=1.19.1",
+    "pytest-html>=4.2.0",
+    "types-PyYAML>=6.0.12.20250915",
+    "types-requests>=2.32.4.20260107",
 ]
 
 [project.scripts]
